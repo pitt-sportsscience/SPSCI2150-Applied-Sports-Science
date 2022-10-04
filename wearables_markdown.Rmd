@@ -1,0 +1,96 @@
+---
+title: "Wearables"
+author: "Felix Proessl"
+date: '2022-10-04'
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Wearables lecture
+
+This R Markdown document serves as an adjunct to the Wearables lecture of `HRS2665 Applied Sports Science` at the University of Pittsburgh. The script will provide an introductory lesson on:
+
+  1) How to read in data
+  2) How to work with and manipulate dates 
+  3) How to visualize time-series data using ggplot
+
+### Step 1: Import packages
+
+Think of `packages` as toolboxes, which allow you to use certain functions. People spend months developing these packages and each package is reviewed by the R community before released to the public. Although this review process does not necessarily prohibit errors, the likelihood of errors decreases, particularly in widely used packages such as those in this script. 
+
+As part of this course, we will predominantly work within the `tidyverse` - a set of packages developed by **Hadley Wickham**, Chief Scientist at **RStudio** and Adjunct Professor of Statistics at the University of Auckland, Stanford University and Rice University. You can learn more about Hadley on [Twitter](https://twitter.com/hadleywickham?ref_src=twsrc%5Egoogle%7Ctwcamp%5Eserp%7Ctwgr%5Eauthor) or [here](https://hadley.nz/). In this tutorial specifically, we will use `readr` to read in data, `dplyr` to manipulate and transform data, and `ggplot2` to visualize data.
+
+Let's start by importing these packages
+
+```{r import packages}
+library(ggplot2)
+library(dplyr)
+library(readr)
+```
+
+### Step 2: Import data
+
+We will now use the **read_csv()** function from the `readr` package to import a dataset that tracks biometric information of one individual who tested positive for COVID. Data is derived from an OURA ring (Gen. 2). The data will be stored to a new variable called `df`.
+
+```{r data import, echo=FALSE}
+df <- read_csv('oura_case_study_data.csv')
+```
+
+### Step 3: Data exploration
+
+Whenever working with a dataset, it is always a good idea to first explore its structure. Essentially, we want to find out things like how many and what variables we are working with, how many data points we have access to and what kind of data we work with (e.g., dates, strings, numeric). It is also helpful to get a quick snapshot into the range of values for each variable. To do so, we will use the **str()**, **dim()**, and **summary()** functions.
+
+#### Data structure
+```{r data structure}
+str(df)
+```
+
+#### Dataset dimensions
+```{r dimensions}
+dim(df)
+```
+
+
+#### Basic descriptive statistics
+```{r descriptive stats}
+summary(df)
+```
+
+
+### Step 4: Data visualization
+
+Now that we know more about the dataset, let's start working with it. The goal is to visualize Temperature Deviations over time, since OURA is arguably able to detect the onset of COVID-related symptoms, such as elevated body temperatures. In order to visualize values over time, we first need to tell R in which way our **dates** variable is formatted , since there are a number of ways to describe dates (e.g., October 4, 2022 vs. 10/4/2022 vs. 10/04/22 vs. 10-04-2022), all of which are valid. To do so, we will use the **mutate()** function from the `dplyr` package, which allows us to either create a new variable (aka column), or overwrite an existing one, depending on the whether or not we name the variable the same or differently. In this case, we will just create a new variable called **date_formatted**. To store this newly formatted variable, we also need to update our existing dataframe, `df`. To avoid having too many dataframes, we will simply overwrite our existing dataframe using the same name.
+
+```{r dates formatting}
+df <- df %>%
+  mutate(date_formatted = as.Date(date, format =  "%m/%d/%y"))
+```
+
+### Step 5: Visualize
+
+Now that we have a working dataframe with a properly formatted **date_formatted** variable, we can visualize Temperature Deviations over time. If we are unsure what the variables were called, we can quickly call up all variable names using the **colnames()** function. After that, we will generate a line graph using the **ggplot()** and **geom_line()** functions from the `ggplot2` package.
+
+```{r visualize data}
+df %>%
+  ggplot(aes(x = date_formatted, 
+             y = `Temperature Deviation (°C)`)) +
+  geom_line() +
+  scale_y_continuous(limits = c(-1, 2))
+```
+
+### Step 5: Contextualize
+
+If we look at the graph above - *when do we think this individual was tested positive for COVID*? Pretty crazy right? All just detectable with a little ring. To provide some additional context, let's add a horizontal line that demonstrates when the individual received his official positive test result (August 28th). To do so, we will use the **geom_vline()** function from the `ggplot2` package. In the `ggplot2` package, we can add multiple layers by calling several lines of code, separated with by a `+` sign.
+
+```{r contextualize graph}
+df %>%
+  ggplot(aes(x = date_formatted, 
+             y = `Temperature Deviation (°C)`)) +
+  geom_line() +
+  geom_vline(xintercept = as.Date("8/28/22", format = "%m/%d/%y"),
+             linetype = "dashed") +
+  scale_y_continuous(limits = c(-1, 2))
+```
