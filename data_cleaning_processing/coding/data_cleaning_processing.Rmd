@@ -6,7 +6,7 @@ output: html_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = TRUE) # hashtag
 ```
 
 ## Introduction
@@ -146,10 +146,12 @@ In the example below, all rows that are **not** *NA* in the segment column will 
 ```{r filtering, echo = TRUE}
 df_soreness <- df %>%
   filter(segment != "NA")
+
 dim(df_soreness)
 
 df_wellness <- df %>%
   filter(Sleep_Duration_h != "NA")
+
 dim(df_wellness)
 ```
 
@@ -173,7 +175,7 @@ df_wellness_short <- df_wellness %>%
 dim(df_wellness_short)
 ```
 
-You can see that there are now 12 columns compared to the original 15. 
+You can see that there are now 11 columns compared to the original 14. 
 
 If you remember from our call above using the `str()` function, the date column was actually not identified as a **date** variable but rather a **character**. You can access individual columns within a specific dataframe using the `$` sign.
 
@@ -190,6 +192,7 @@ Remember in our data hygiene class we talked about the fact that spaces in colum
 colnames(df_soreness)
 
 df_soreness_columns <- df_soreness
+
 colnames(df_soreness_columns) <- c("date", "segment", "user_uid", "Body_Map_Soreness", "Body_Map_Pain",
                                    "Sleep_Duration_h", "Meals", "Snacks", "Drinks", "Fatigue", 
                                    "RPE_Physical", "RPE_Mental", "Good_stress", "Bad_stress", "Name")
@@ -238,7 +241,7 @@ There are 4 observations where sleep was **equal to or smaller than** (`<=`) 3h.
 
 ```{r outlier removal, echo = TRUE}
 df_clean <- df %>%
-    filter(Sleep_Duration_h > 3)
+    filter(Sleep_Duration_h >= 3)
 
 df_clean %>%
   ggplot(aes(y = Sleep_Duration_h)) +
@@ -292,9 +295,9 @@ Just to reiterate why the cleaning was necessary - if we were to repeat these ca
 
 ```{r simple processing bad input, echo = TRUE}
 #maximum
-max(df$Sleep_Duration_h)
+max(df$Sleep_Duration_h, na.rm = TRUE)
 #minimum
-min(df$Sleep_Duration_h)
+min(df$Sleep_Duration_h, na.rm = TRUE)
 #median
 median(df$Sleep_Duration_h)
 #mean
@@ -343,7 +346,7 @@ df_clean %>%
 # summarize by date and athlete
 df_clean %>%
   filter(date < "2022-10-01") %>% #filter more recent dates to avoid to large outcomes
-  dplyr::group_by(date, user_uid, ) %>%
+  dplyr::group_by(date, user_uid) %>%
   dplyr::summarise(Sleep_mean = mean(Sleep_Duration_h),
             Sleep_median = median(Sleep_Duration_h),
             Sleep_max = max(Sleep_Duration_h),
@@ -367,6 +370,12 @@ starters <- c("rhhydf3xuhx96u3s", "8l06q1c60kw91azx",
 
 df_clean_starter <- df_clean %>%
   mutate(Starter = ifelse(user_uid %in% starters, "Starter", "Non-starter"))
+
+head(df_clean_starter, 100)
+
+df_clean_starter %>%
+  dplyr::group_by(Starter) %>%
+  tally()
 ```
 
 ### Data merging
@@ -395,7 +404,7 @@ df_merge <- merge(df_wellness_clean, df_soreness_clean,
                       by = c("user_uid", "date")) #specifcy columns by whcih to merge
 
 dim(df_soreness_clean)
-dim(df_wellness)
+dim(df_wellness_clean)
 dim(df_merge)
 dim(df_left_join)
 dim(df_inner_join)
@@ -408,7 +417,7 @@ You can see based on the dimensions that we went from 798 observations in the **
 **merge() and inner_join()**
 Inner Join in R is the simplest and most common type of join. It is also known as simple join or Natural Join. inner_join() returns the rows when matching condition is met. merge() function by default performs inner join there by return only the rows in which the left table have matching keys in the right table.
 
-**outer_join()**
+**full_join()**
 Outer Join in  R combines the results of both left and right outer joins. The joined table will contain all records from both the tables.
 
 **left_join() and right_join()**
@@ -438,6 +447,12 @@ df_halloween_long <- df_halloween_wide %>%
   gather(key = "key", value = "value")
 
 df_halloween_long
+
+
+df_halloween %>%
+  gather(key = "key", value = "value") %>%
+  filter(key != "Day") %>%
+  mutate(Day = rep(df_halloween$Day, times = 2))
 ```
 
 
