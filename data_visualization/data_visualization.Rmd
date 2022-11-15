@@ -1,0 +1,500 @@
+---
+title: "HRS2665: Applied Sports Science"
+author: "Felix Proessl"
+date: "11/14/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Data Visualization
+
+### Import packages
+
+```{r, package import, message = FALSE, warning = FALSE}
+###install.packages("tidyverse") ##to install the tidyverse package - a set of packages for data cleaning/manipulation/visualization
+library(tidyverse) ###to import the tidyverse package
+####install.packages("ggjoy") ##to install the ggjoy package - a package mostly for data visualization
+library(ggjoy) ##to import the ggjoy package
+library(ggsoccer)
+library(factoextra)
+library(ggridges)
+```
+
+This time, the dataset for the lecture was taken from Kaggle - an online community of machine learning practitioners and data scientists. When you downloaded this file, the dataset should be contained in the same folder/directory. If you cannot find the file in your folder, you can access the dataset here: <https://www.kaggle.com/karangadiya/fifa19>.
+
+
+### Import data
+
+Let's import the data and take a quick glimpse at the first 10 rows.
+
+```{r import data, message = FALSE, warning = FALSE}
+###install.packages("readr")
+library(readr)
+df <- readr::read_csv('data.csv') ###df is a common abbreviation for dataframe
+head(df, 10) ##print first rows
+```
+
+To give you a taste of R's capabilities - here are a few quick ways to explore the dataset. Let's figure out what country has the best player ratings in FIFA. Let's do a "quick and dirty" test using boxplots. We first restrict the analysis to Germany, Spain, England, France and the US using the *filter* command of the tidyverse, and then use ggplot (a data visualization package of the tidyverse) to plot boxplots for us.
+
+
+### Basics of ggplot2
+
+Two of the fundamental principles of `ggplot2` is that it typically requires data in **long format** and that each graph is composed of individual **layers**:
+
+
+![ggplot2 layers.](images/gglayers.png){style="display: block; margin: 0 auto" }
+
+To generate any figure, we need to **at least** specify the **data** (i.e. the dataframe that has the data to be visualized), the **aesthetics** (i.e. generally x- and y-axis variables, but can include conditional color-coding or sizing) and the **geometries** (i.e. what type of graph you want to use - bar chart, line chart, etc.).
+
+Let's create the basic structure of a `ggplot2` graph by specifying the **data** `df` and **aesthetics** `aes()` to indicate x- and y-variables.
+
+```{r, ggplot2 basics, message=FALSE, warning=FALSE}
+df %>%
+  ggplot(aes(x = Agility, y = SprintSpeed))
+```
+
+
+### Scatter chart
+
+After the basic structure of the graph is specified, indicate what type of **geometric layer** you want to add. Geometries can include dots, lines, bars, boxes, areas, etc. To specify what type of geometry we want, we can add various **geoms** to our existing `ggplot()` call using the `+` command rather than piping (`%>%`) it from an existing dataframe.
+
+```{r, ggplot2 basics 2, message=FALSE, warning=FALSE}
+df %>%
+  ggplot(aes(x = Agility, y = SprintSpeed)) +
+  geom_point(alpha = 0.1)
+```
+
+### Bar chart
+
+If we wanted to generate a bar chart, we can do so at the individual or summary level. In the below, we combine the `filter()` function with our `ggplot()` calls to depict the top ten most valuable players and then use the `group_by()` and `summarise()` to generate a bar chart to compare market value across various nationalities at the summary level, including **error bars** consisting of the mean + standard deviation.
+
+```{r, bar chart, warning=FALSE, message=FALSE}
+#what's the problem with our current value column?
+head(df$Value, 10)
+
+#extract ten most valuable players
+top_ten <- df %>%
+  filter(!grepl("K", Value)) %>%
+  mutate(Value = as.numeric(gsub('\\€|M|K', '', Value))) %>% #remove Euro signs, M or K from string and make it numeric
+  arrange(desc(Value)) %>% # sort by Value
+  slice(1:10) # take the top ten
+
+#individual bar chart
+top_ten %>%
+  ggplot(aes(x = Name, y = Value)) +
+  geom_bar(stat = 'identity',
+           color = "black")
+
+#create new dataframe for summary bar chart
+top_ten_nations <- df %>%
+  filter(!grepl("K", Value)) %>%
+  mutate(Value = as.numeric(gsub('\\€|M|K', '', Value))) %>% #remove Euro signs, M or K from string and make it numeric
+  filter(grepl("Germany|England|United States|Denmark|Spain|France|Italy|Turkey|Finland|Netherlands|Brazil|Argentina", Nationality)) %>% #extract a series of nationalities based on string patterns
+  dplyr::group_by(Nationality) %>%
+  arrange(desc(Value)) %>% # sort by Value per country
+  slice(1:10) %>%
+  dplyr::summarise(Value_mean = median(Value),
+                   Value_sd = sd(Value, na.rm = TRUE))
+
+#summary bar chart
+top_ten_nations %>%
+  ggplot(aes(x = Nationality, y = Value_mean)) +
+  geom_bar(stat = 'identity',
+           color = "black",
+           size = 1) +
+  #add errorbars
+  geom_errorbar(aes(ymin = Value_mean, #minimum matches the mean so that errorbar lines with bar
+                    ymax = Value_mean + Value_sd), #maximum = mean + SD
+                width = 0.1, size = 1) + #match the size to that of geom_bar so that things are even
+  labs(y = "Market Value (€)")
+```
+
+Sorry for the US on that one....
+
+### Pie chart
+
+```{r, pie chart, message=FALSE, warning=FALSE}
+top_ten_nations %>%
+  ggplot(aes(x = "", y = Value_mean, 
+             fill = Nationality)) +
+  geom_bar(stat = "identity", 
+           width = 1,
+           color = "black") +
+  coord_polar("y", start = 0) + #make a chart round
+  labs(y = "Market Value (€)")
+```
+
+
+### Boxplot
+
+Bar charts visualize means or individual datapoints, but what if we wanted to visualize the distribution of data or multiple datapoints per group? This is where boxplots come in. Since we want to visualize **distributions**, not **point estimates** or **individuals** we need to work with all data, not summary statistics. Let's repeat the last visualization as a boxplot to demonstrate this point.
+
+```{r, boxplot, warning=FALSE, message=FALSE}
+#create new dataframe for summary bar chart
+top_ten_nations_long <- df %>%
+  filter(!grepl("K", Value)) %>%
+  mutate(Value = as.numeric(gsub('\\€|M|K', '', Value))) %>% #remove Euro signs, M or K from string and make it numeric
+  filter(grepl("Germany|England|United States|Denmark|Spain|France|Italy|Turkey|Finland|Netherlands|Brazil|Argentina", Nationality)) %>% #extract a series of nationalities based on string patterns
+  dplyr::group_by(Nationality) %>%
+  arrange(desc(Value)) %>% # sort by Value per country
+  slice(1:10)
+
+#summary bar chart
+top_ten_nations_long %>%
+  ggplot(aes(x = Nationality, y = Value)) +
+  geom_boxplot() +
+  labs(y = "Market Value (€)")
+```
+
+
+### Histograms and Density plots
+
+```{r, density plots, message=FALSE, warning=FALSE}
+#histogram
+top_ten_nations_long %>%
+  filter(Nationality == "Brazil") %>%
+  ggplot(aes(x = Value)) +
+  geom_histogram(color = "black",
+                 fill = "grey31") +
+  labs(x = "Market Value (€)")
+
+#density chart
+top_ten_nations_long %>%
+  filter(Nationality == "Brazil") %>%
+  ggplot(aes(x = Value)) +
+  geom_density(color = "black", #color = outline
+               fill = "grey31") + #fill = AUC
+  labs(x = "Market Value (€)")
+
+#multiple density chart
+top_ten_nations_long %>%
+  ggplot(aes(x = Value, y = Nationality)) +
+  geom_density_ridges2(aes(fill = Nationality)) +
+  labs(x = "Market Value (€)")
+```
+
+### Violin plots
+
+```{r, violin plots, message=FALSE, warning=FALSE}
+#violin chart
+top_ten_nations_long %>%
+  ggplot(aes(x = Nationality, y = Value)) +
+  geom_violin(color = "black",
+                 fill = "grey31") +
+  labs(y = "Market Value (€)")
+```
+
+### Line chart
+
+```{r, line chart, message=FALSE, warning=FALSE}
+#line chart
+df %>%
+  filter(Age < 40) %>%
+  dplyr::group_by(Age) %>%
+  dplyr::summarise(SprintSpeed = mean(SprintSpeed, na.rm = TRUE)) %>%
+  ggplot(aes(x = Age, y = SprintSpeed)) +
+  geom_line(size = 1)
+
+#add points to line chart
+df %>%
+  filter(Age < 40) %>%
+  dplyr::group_by(Age) %>%
+  dplyr::summarise(SprintSpeed = mean(SprintSpeed, na.rm = TRUE)) %>%
+  ggplot(aes(x = Age, y = SprintSpeed)) +
+  geom_point(size = 3) +
+  geom_line(size = 1)
+```
+
+### Polar chart
+
+What if we wanted to visualize multiple physical characteristics across several KPIs? This is were **Polar charts** can come in handy. Similar to how pie charts are built, the basic premise behind a polar chart is to compute a summary outcome across multiple factors and then use the `coord_polar()` function to make the figure round.
+
+```{r, polar chart, message=FALSE, warning=FALSE}
+## first group all FIFA players into age groups and summarize physical characteristics
+df_summary <- df %>%
+  mutate(Group = ifelse(Age < 20, "Youth",
+                         ifelse(Age >= 20 & Age < 25, "Young", 
+                                ifelse(Age >= 25 & Age < 30, "Established",
+                                       ifelse(Age >= 30 & Age < 35, "Experienced", "Old"))))) %>%
+  dplyr::group_by(Group) %>%
+  dplyr::summarise(SprintSpeed = mean(SprintSpeed, na.rm = TRUE),
+                   Strength = mean(Strength, na.rm = TRUE),
+                   Balance = mean(Balance, na.rm = TRUE),
+                   Acceleration = mean(Acceleration, na.rm = TRUE),
+                   Jumping = mean(Jumping, na.rm = TRUE),
+                   Stamina = mean(Stamina, na.rm = TRUE),
+                   Agility = mean(Agility, na.rm = TRUE))
+
+# remember ggplot2 likes all dataframes in long format, so let's go from wide to long
+df_summary_long <- df_summary %>%
+  ungroup() %>%
+  select(-Group) %>%
+  gather(key = "key",
+         value = "value") %>%
+  mutate(Group = rep(df_summary$Group, times = ncol(df_summary) - 1))
+
+# ensure consistent order across factors
+df_summary_long$key <- factor(df_summary_long$key, levels = unique(df_summary_long$key))
+
+#visualize line chart across variables and add coord_polar()
+df_summary_long %>%
+  ggplot(aes(x = key, y = value, group = Group)) +
+  geom_polygon(fill = NA,
+               size = 1,
+               aes(color = Group,
+                   group = Group)) +
+  labs(y = "Rating  (0-100)",
+       x = "") +
+  coord_polar() +
+  scale_y_continuous(limits = c(40,70)) +
+  theme_minimal()
+
+#visualize line chart across variables and add coord_polar()
+df_summary_long %>%
+  ggplot(aes(x = key, y = value, group = Group)) +
+  geom_polygon(alpha = 0.2, #change alpha to vary transparency if aiming to maintain filled area
+               size = 0.5,
+               aes(color = Group,
+                   fill = Group,
+                   group = Group)) +
+  labs(y = "Rating  (0-100)",
+       x = "") +
+  coord_polar() +
+  scale_y_continuous(limits = c(40,70)) +
+  theme_minimal()
+```
+
+
+### Statistics and Nonlinear line charts
+
+```{r, line chart regression, message=FALSE, warning=FALSE}
+#line chart
+df %>%
+  filter(Age > 25 & Age < 40) %>%
+  dplyr::group_by(Age) %>%
+  dplyr::summarise(SprintSpeed = mean(SprintSpeed, na.rm = TRUE)) %>%
+  ggplot(aes(x = Age, y = SprintSpeed)) +
+  geom_point() +
+  geom_smooth(method = "lm") #lm = linear model, can be glm or loess
+
+#add points to line chart
+df %>%
+  filter(Age < 40) %>%
+  dplyr::group_by(Age) %>%
+  dplyr::summarise(SprintSpeed = mean(SprintSpeed, na.rm = TRUE)) %>%
+  ggplot(aes(x = Age, y = SprintSpeed)) +
+  geom_point() +
+  stat_smooth(method = "lm", #lm = linear model
+              formula = y~poly(x,2)) #but now with polynomial regression to account for non-linearity
+```
+
+### Lollipop chart (line chart + scatter chart)
+
+```{r, lollipop chart, message=FALSE, warning=FALSE}
+top_ten_nations_long %>%
+  ungroup() %>%
+  select(Overall, Potential) %>%
+  gather(key = "key", value = "value") %>%
+  mutate(Nationality = rep(top_ten_nations_long$Nationality, times = 2)) %>%
+  dplyr::group_by(Nationality, key) %>%
+  dplyr::summarise(value = mean(value)) %>%
+  ggplot(aes(x = value, y = Nationality)) +
+    geom_line(aes(group = Nationality),
+            color = "grey81",
+            size = 1) +
+  geom_point(aes(color = key),
+             size = 2) +
+  labs(x = "") +
+  theme_minimal()
+```
+
+### Heatmaps
+
+What if we have longitudinal data and wanted to visualize a specific outcome over time (factor 1), but at the individual athlete level (factor 2)? We could show a line chart with each line specific to an individual, but those often get messy because the lines overlap. **Heatmaps** are another way of visualizing that same type of information.
+
+```{r, heatmap, message=FALSE, warning=FALSE}
+# create data for heatmap example
+df_heatmap <- data.frame(Minute = seq(from = 15, to = 90, by = 15),
+                         Player1 = seq(from = 90, to = 157, length.out = 6),
+                         Player2 = seq(from = 83, to = 130, length.out = 6),
+                         Player3 = seq(from = 96, to = 122, length.out = 6),
+                         Player4 = seq(from = 98, to = 132, length.out = 6),
+                         Player5 = seq(from = 85, to = 136, length.out = 6),
+                         Player6 = seq(from = 88, to = 110, length.out = 6),
+                         Player7 = seq(from = 91, to = 144, length.out = 6),
+                         Player8 = seq(from = 82, to = 142, length.out = 6),
+                         Player9 = seq(from = 92, to = 123, length.out = 6),
+                         Player10 = seq(from = 95, to = 104, length.out = 6))
+
+
+#go from wide to long
+df_heatmap_long <- df_heatmap %>%
+  select(-Minute) %>%
+  gather(key = "key",
+         value = "value") %>%
+  mutate(Minute = rep(df_heatmap$Minute, times = ncol(df_heatmap) - 1))
+
+
+df_heatmap_long$key <- factor(df_heatmap_long$key, levels = c("Player1", "Player2", "Player3", "Player4", "Player5",
+                                                              "Player6", "Player7", "Player8", "Player9", "Player10"))
+
+
+#heatmap
+df_heatmap_long %>%
+  ggplot(aes(x = as.numeric(Minute),
+             y = key,
+             fill = value)) +
+  geom_raster(interpolate = FALSE) +
+  labs(y = "Athlete",
+       x = "Minute Mark") +
+  scale_fill_viridis_c(option = "magma")
+
+#heatmap interpolated
+df_heatmap_long %>%
+  ggplot(aes(x = as.numeric(Minute),
+             y = key,
+             fill = value)) +
+  geom_raster(interpolate = TRUE) +
+  labs(y = "Athlete",
+       x = "Minute Mark") +
+  scale_fill_viridis_c(option = "magma")
+
+```
+
+### Special considerations: dates / calendars
+
+Sometimes when you want to analyze the **macrocycle** of your team, it's helpful to look at the whole season. Although line or summary charts are clean and easy, what's most intuitive to coaches is possibly a simple `calendar` format. In the below, we show how to format dates and use `facet_grid()` to generate graphs that resemble a calendar year. This example was taken from selva86 on GitHub: https://github.com/selva86
+
+```{r, calendar_dates, message=FALSE, warning=FALSE}
+library(plyr)
+library(scales)
+library(zoo)
+
+
+df_data <- read.csv("https://raw.githubusercontent.com/selva86/datasets/master/yahoo.csv")
+df_data$date <- as.Date(df_data$date)  # format date
+df_data <- df_data[df_data$year >= 2012, ]  # filter reqd years
+
+
+df_data$yearmonth <- as.yearmon(df_data$date)
+df_data$yearmonthf <- factor(df_data$yearmonth)
+df_data <- ddply(df_data,.(yearmonthf), transform, monthweek=1+week-min(week))  # compute week number of month
+df_data <- df_data[, c("year", "yearmonthf", "monthf", "week", "monthweek", "weekdayf", "VIX.Close")]
+head(df_data)
+
+df_data %>%
+  ggplot(aes(monthweek, weekdayf, fill = VIX.Close)) + 
+  geom_tile(colour = "white") + 
+  facet_grid(year~monthf) + 
+  scale_fill_gradient(low="red", high="green") +
+  labs(x="Week of Month",
+       y="",
+       title = "Time-Series Calendar Heatmap", 
+       subtitle="Yahoo Closing Price", 
+       fill="Close")
+```
+
+### Aesthetics and storytelling
+
+```{r, storytelling, message=FALSE, warning=FALSE}
+#summary bar chart
+top_ten_nations %>%
+  ggplot(aes(x = fct_reorder(Nationality, -Value_mean), y = Value_mean)) +
+  geom_bar(stat = 'identity',
+           color = "black",
+           size = 0.5,
+           aes(fill = ifelse(Value_mean < 20, "High", "Low"))) +
+  #add errorbars
+  geom_errorbar(aes(ymin = Value_mean, #minimum matches the mean so that errorbar lines with bar
+                    ymax = Value_mean + Value_sd), #maximum = mean + SD
+                width = 0.1, size = 0.5) + #match the size to that of geom_bar so that things are even
+  labs(y = "Market Value (€)",
+       x = "Nationality",
+       fill = "Value") +
+  scale_fill_manual(values = c("red", "grey31")) +
+  theme_minimal() +
+  scale_y_continuous(expand = c(0,0)) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1),
+        axis.line = element_line(color = "black"),
+        legend.position = "top") 
+
+library(ggrepel)
+df %>%
+  ggplot(aes(x = SprintSpeed, y = Acceleration)) +
+  geom_point(aes(alpha = ifelse(grepl("Neymar", Name), "Neymar", "No"), #change transparency based on a condition
+                 color = ifelse(grepl("Neymar", Name), "Neymar", "No"), #change color based on a condition
+                 size = ifelse(grepl("Neymar", Name), "Neymar", "No"))) + #change size based on a condition
+  geom_text_repel(aes(label = ifelse(grepl("Neymar", Name), "Neymar", NA),
+                      color = ifelse(grepl("Neymar", Name), "Neymar", NA))) + #label specific individuals using geom_text or geom_text_repel
+  scale_alpha_manual(values = c(1, 0.05)) +
+  scale_color_manual(values = c("red", "grey31")) +
+  scale_size_manual(values = c(3, 1)) +
+  theme(legend.position = "none")
+
+```
+
+
+### Creating a report: patchwork
+
+The reason why we care so much about creating *individual* graphs using `ggplot2` is because we can very easily *patch* several graphs into one **report** using the `patchwork` package. Patchwork can conveniently place two (or more) graphs next to each other using the `+` sign, or place two (or more) graphs above/below each other using the `/` sign. You can learn more about the `patchwork` package here and additional commands, such as `plot_spacer()` here: https://patchwork.data-imaginist.com/
+
+
+```{r, patchwork}
+library(patchwork)
+
+lollipop <- top_ten_nations_long %>%
+  ungroup() %>%
+  select(Overall, Potential) %>%
+  gather(key = "key", value = "value") %>%
+  mutate(Nationality = rep(top_ten_nations_long$Nationality, times = 2)) %>%
+  dplyr::group_by(Nationality, key) %>%
+  dplyr::summarise(value = mean(value)) %>%
+  ggplot(aes(x = value, y = Nationality)) +
+    geom_line(aes(group = Nationality),
+            color = "grey81",
+            size = 1) +
+  geom_point(aes(color = key),
+             size = 2) +
+  labs(x = "") +
+  theme_minimal()
+
+#heatmap interpolated
+heatmap <- df_heatmap_long %>%
+  ggplot(aes(x = as.numeric(Minute),
+             y = key,
+             fill = value)) +
+  geom_raster(interpolate = TRUE) +
+  labs(y = "Athlete",
+       x = "Minute Mark") +
+  scale_fill_viridis_c(option = "magma")
+
+#visualize line chart across variables and add coord_polar()
+polar_plot <- df_summary_long %>%
+  ggplot(aes(x = key, y = value, group = Group)) +
+  geom_polygon(alpha = 0.2, #change alpha to vary transparency if aiming to maintain filled area
+               size = 0.5,
+               aes(color = Group,
+                   fill = Group,
+                   group = Group)) +
+  labs(y = "Rating  (0-100)",
+       x = "") +
+  coord_polar() +
+  scale_y_continuous(limits = c(40,70)) +
+  theme_minimal()
+
+boxplot <- #summary bar chart
+top_ten_nations_long %>%
+  ggplot(aes(x = Nationality, y = Value)) +
+  geom_boxplot() +
+  labs(y = "Market Value (€)")
+
+# / = above/below, + = next to each other
+(lollipop + heatmap) / (polar_plot + boxplot)
+```
+
+
+
+

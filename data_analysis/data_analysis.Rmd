@@ -223,7 +223,7 @@ df_starter_game_training <- df_clean %>%
   dplyr::group_by(user_uid, Game) %>%
   dplyr::summarise(MaxVel = mean(`Max Vel`, na.rm = TRUE) * 0.44704) #convert to m/s
 
-# calculate means for conveninent overlay
+# calculate means for convenient overlay
 df_starter_game_training_mean <- df_starter_game_training %>%
   dplyr::group_by(Game) %>%
   dplyr::summarise(MaxVel = mean(MaxVel))
@@ -301,8 +301,9 @@ df_rmanova <- df_clean %>%
   filter(Game != "Game")
 
 df_rmanova %>%
-  ggplot(aes(x = Weekday, y = `Max Vel`)) +
-  geom_boxplot(aes(fill = Weekday))
+  ggplot(aes(x = Weekday, y = `Max Vel` * 0.44704)) +
+  geom_boxplot(aes(fill = Weekday)) +
+  labs(y = "Maximum Velocity (m/s)")
 
 weekday_aov <- aov(`Max Vel` ~ factor(Weekday) + Error(factor(user_uid)/Weekday), data = df_rmanova)
 
@@ -399,21 +400,21 @@ Let's first see if we can successfully transform those variables.
 ```{r, data transformation, echo = TRUE, warning = FALSE, message = FALSE}
 # transform variables
 df_games <- df_games %>%
-  mutate(HSD_log = log(`Max Vel`),
-         HSD_rec = 1/`Max Vel`,
-         HSD_sqrt = sqrt(`Max Vel`))
+  mutate(MaxVel_log = log(`Max Vel`),
+         MaxVel_rec = 1/`Max Vel`,
+         MaxVel_sqrt = sqrt(`Max Vel`))
 
 # visualize histograms - logarithmic transformation
 df_games %>%
-  ggplot(aes(x = HSD_log)) +
+  ggplot(aes(x = MaxVel_sqrt)) +
   geom_histogram(color = "black",
                  fill = "grey91")
 
-shapiro.test(df_games$HSD_sqrt)
+shapiro.test(df_games$MaxVel_sqrt)
 
 # visualize histograms - square root transformation
 df_games %>%
-  ggplot(aes(x = HSD_sqrt)) +
+  ggplot(aes(x = MaxVel_log)) +
   geom_histogram(color = "black",
                  fill = "grey41")
 
