@@ -74,6 +74,7 @@ If we wanted to generate a bar chart, we can do so at the individual or summary 
 ```{r, bar chart, warning=FALSE, message=FALSE}
 #what's the problem with our current value column?
 head(df$Value, 10)
+str(df$Value)
 
 #extract ten most valuable players
 top_ten <- df %>%
@@ -96,7 +97,7 @@ top_ten_nations <- df %>%
   dplyr::group_by(Nationality) %>%
   arrange(desc(Value)) %>% # sort by Value per country
   slice(1:10) %>%
-  dplyr::summarise(Value_mean = median(Value),
+  dplyr::summarise(Value_mean = mean(Value),
                    Value_sd = sd(Value, na.rm = TRUE))
 
 #summary bar chart
@@ -109,7 +110,8 @@ top_ten_nations %>%
   geom_errorbar(aes(ymin = Value_mean, #minimum matches the mean so that errorbar lines with bar
                     ymax = Value_mean + Value_sd), #maximum = mean + SD
                 width = 0.1, size = 1) + #match the size to that of geom_bar so that things are even
-  labs(y = "Market Value (€)")
+  labs(y = "Market Value (M€)",
+       x = "Nation")
 ```
 
 Sorry for the US on that one....
@@ -146,7 +148,7 @@ top_ten_nations_long <- df %>%
 top_ten_nations_long %>%
   ggplot(aes(x = Nationality, y = Value)) +
   geom_boxplot() +
-  labs(y = "Market Value (€)")
+  labs(y = "Market Value (M€)")
 ```
 
 
@@ -163,10 +165,19 @@ top_ten_nations_long %>%
 
 #density chart
 top_ten_nations_long %>%
-  filter(Nationality == "Brazil") %>%
+  #filter(Nationality == "Brazil") %>%
   ggplot(aes(x = Value)) +
   geom_density(color = "black", #color = outline
                fill = "grey31") + #fill = AUC
+  labs(x = "Market Value (€)")
+
+#density chart
+top_ten_nations_long %>%
+  #filter(Nationality == "Brazil") %>%
+  ggplot(aes(x = Value)) +
+  geom_density(color = "black", #color = outline
+               alpha = 0.1,
+               aes(fill = Nationality)) + #fill = AUC
   labs(x = "Market Value (€)")
 
 #multiple density chart
@@ -406,7 +417,7 @@ top_ten_nations %>%
   geom_bar(stat = 'identity',
            color = "black",
            size = 0.5,
-           aes(fill = ifelse(Value_mean < 20, "High", "Low"))) +
+           aes(fill = ifelse(Nationality == "Germany", "GER", "NO"))) +
   #add errorbars
   geom_errorbar(aes(ymin = Value_mean, #minimum matches the mean so that errorbar lines with bar
                     ymax = Value_mean + Value_sd), #maximum = mean + SD
@@ -419,20 +430,22 @@ top_ten_nations %>%
   scale_y_continuous(expand = c(0,0)) +
   theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1),
         axis.line = element_line(color = "black"),
-        legend.position = "top") 
+        legend.position = "top")
 
 library(ggrepel)
 df %>%
+  filter(Position == "LCB") %>%
   ggplot(aes(x = SprintSpeed, y = Acceleration)) +
-  geom_point(aes(alpha = ifelse(grepl("Neymar", Name), "Neymar", "No"), #change transparency based on a condition
-                 color = ifelse(grepl("Neymar", Name), "Neymar", "No"), #change color based on a condition
-                 size = ifelse(grepl("Neymar", Name), "Neymar", "No"))) + #change size based on a condition
-  geom_text_repel(aes(label = ifelse(grepl("Neymar", Name), "Neymar", NA),
-                      color = ifelse(grepl("Neymar", Name), "Neymar", NA))) + #label specific individuals using geom_text or geom_text_repel
-  scale_alpha_manual(values = c(1, 0.05)) +
+  geom_point(aes(alpha = ifelse(grepl("Hummels", Name), "Hummels", "Yes"), #change transparency based on a condition
+                 color = ifelse(grepl("Hummels", Name), "Hummels", "Yes"), #change color based on a condition
+                 size = ifelse(grepl("Hummels", Name), "Hummels", "Yes"))) + #change size based on a condition
+  geom_text_repel(aes(label = ifelse(grepl("Hummels", Name), "Hummels", NA),
+                      color = ifelse(grepl("Hummels", Name), "Hummels", NA))) + #label specific individuals using geom_text or geom_text_repel
+  scale_alpha_manual(values = c(1, 0.20)) +
   scale_color_manual(values = c("red", "grey31")) +
   scale_size_manual(values = c(3, 1)) +
-  theme(legend.position = "none")
+  theme_minimal() +
+   theme(legend.position = "none")
 
 ```
 
@@ -485,13 +498,17 @@ polar_plot <- df_summary_long %>%
   scale_y_continuous(limits = c(40,70)) +
   theme_minimal()
 
-boxplot <- #summary bar chart
-top_ten_nations_long %>%
+#summary bar chart
+boxplot <- top_ten_nations_long %>%
   ggplot(aes(x = Nationality, y = Value)) +
   geom_boxplot() +
   labs(y = "Market Value (€)")
 
 # / = above/below, + = next to each other
+
+boxplot / heatmap
+ 
+
 (lollipop + heatmap) / (polar_plot + boxplot)
 ```
 
