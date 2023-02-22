@@ -6,7 +6,7 @@ The repository is structured based on weekly lectures, with the scripts of each 
 All scripts were written in `R Markdown` and require the following dependancies in order to run:
 
 - [tidyverse](https://cran.r-project.org/web/packages/tidyverse/index.html) suite
--- ggplot
+  - [ggplot2](https://cran.r-project.org/web/packages/ggplot2/index.html), [dplyr](https://cran.r-project.org/web/packages/dplyr/index.html), [tidyr](https://cran.r-project.org/web/packages/tidyr/index.html), [readr](https://cran.r-project.org/web/packages/readr/index.html), [stringr], [forcats], [lubridate]
 - [corrplot](https://cran.r-project.org/web/packages/corrplot/vignettes/corrplot-intro.html)
 - [patchwork](https://cran.r-project.org/web/packages/patchwork/index.html)
 - [RColorBrewer](https://cran.r-project.org/web/packages/RColorBrewer/index.html)
