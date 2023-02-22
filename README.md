@@ -5,7 +5,7 @@ The repository is structured based on weekly lectures, with the scripts of each 
 
 All scripts are written in `R` and require the following packages:
 
-<tidyverse>
+[tidyverse](https://cran.r-project.org/web/packages/tidyverse/index.html)
 
 
 For questions, please contact Dr. Felix Proessl at fproessl@athletics.pitt.edu.
