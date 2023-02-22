@@ -17,6 +17,7 @@ All scripts were written in `R Markdown` and require the following dependancies 
 - [corrplot](https://cran.r-project.org/web/packages/corrplot/vignettes/corrplot-intro.html)
 - [patchwork](https://cran.r-project.org/web/packages/patchwork/index.html)
 - [RColorBrewer](https://cran.r-project.org/web/packages/RColorBrewer/index.html)
+- [readxl](https://cran.r-project.org/web/packages/readxl/index.html)
 - [Shiny](https://cran.r-project.org/web/packages/shiny/index.html)
 
 
