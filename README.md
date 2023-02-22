@@ -15,4 +15,15 @@ All scripts were written in `R Markdown` and require the following dependancies 
 - [Shiny](https://cran.r-project.org/web/packages/shiny/index.html)
 
 
+### Additional resources
+
+- [Advanced R](https://adv-r.hadley.nz/) - Hadley Wickham
+- [R for Data Science](https://r4ds.had.co.nz/) - Hadley Wickham and Garrett Grolemund
+- [Advanced R Solutions](https://advanced-r-solutions.rbind.io/) - Malte Grosser, Henning Bumann and Hadley Wickham
+- [An Introduction to ggplot2](https://bookdown.org/ozancanozdemir/introduction-to-ggplot2/) - Ozancan Ozdemir
+- [Tidy Text Mining](https://www.tidytextmining.com/) - Julia Silge and David Robinson
+
+
+### Contact
+
 For questions, please contact Dr. Felix Proessl at fproessl@athletics.pitt.edu.
