@@ -10,10 +10,10 @@ The repository is structured based on weekly lectures, with the scripts of each 
 - Data analysis / intro to statistics
 - Case study: wearables - Oura
 
-All scripts were written in `R Markdown` and require the following dependancies in order to run:
+All scripts were written in `R Markdown` and require the following dependancies in order to run on your device:
 
 - [tidyverse](https://cran.r-project.org/web/packages/tidyverse/index.html) suite
-  - [ggplot2](https://cran.r-project.org/web/packages/ggplot2/index.html), [dplyr](https://cran.r-project.org/web/packages/dplyr/index.html), [tidyr](https://cran.r-project.org/web/packages/tidyr/index.html), [readr](https://cran.r-project.org/web/packages/readr/index.html), [stringr], [forcats], [lubridate]
+  - [ggplot2](https://cran.r-project.org/web/packages/ggplot2/index.html), [dplyr](https://cran.r-project.org/web/packages/dplyr/index.html), [tidyr](https://cran.r-project.org/web/packages/tidyr/index.html), [readr](https://cran.r-project.org/web/packages/readr/index.html), [stringr](https://cran.r-project.org/web/packages/stringr/index.html), [forcats](https://cran.r-project.org/web/packages/forcats/index.html), [lubridate](https://cran.r-project.org/web/packages/lubridate/vignettes/lubridate.html)
 - [corrplot](https://cran.r-project.org/web/packages/corrplot/vignettes/corrplot-intro.html)
 - [patchwork](https://cran.r-project.org/web/packages/patchwork/index.html)
 - [RColorBrewer](https://cran.r-project.org/web/packages/RColorBrewer/index.html)
