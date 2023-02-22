@@ -3,7 +3,12 @@ This is the online repository for `HRS2665: Applied Sports Science` as part of t
 
 ### General information
 
-The repository is structured based on weekly lectures, with the scripts of each lecture contained in a separate directory.
+The repository is structured based on weekly lectures, with the scripts of each lecture contained in a separate directory. While continuously evolving, in its first iteration, this repository covered the following topics:
+
+- Data cleanind and processing
+- Data visualization
+- Data analysis / intro to statistics
+- Case study: wearables - Oura
 
 All scripts were written in `R Markdown` and require the following dependancies in order to run:
 
