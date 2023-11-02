@@ -16,9 +16,9 @@ Going through each lecture, you will become proficient in the following: 💡
 
 - Introduction to R
 - Data cleanind and processing
-- Data visualization
-- Statistical analysis (basic parametric and non-parametric testing)
-- Exploratory data analysis
+- Data visualization (ggplot, plotly, ggExtra, ggdist)
+- Statistical analysis (parametric and non-parametric testing, unsupervised and supervised machine-learning algorithms)
+- Exploratory data analysis (principal component analysis, correlation matrices)
 - APIs (HawkinR, CatapultR, Wyscout)
 - Shiny
 
@@ -29,6 +29,7 @@ All scripts were written in `R Markdown` and require **at least** the following 
 - [corrplot](https://cran.r-project.org/web/packages/corrplot/vignettes/corrplot-intro.html)
 - [patchwork](https://cran.r-project.org/web/packages/patchwork/index.html)
 - [RColorBrewer](https://cran.r-project.org/web/packages/RColorBrewer/index.html)
+- [ggdist](https://mjskay.github.io/ggdist/)
 - [readxl](https://cran.r-project.org/web/packages/readxl/index.html)
 - [janitor](https://cran.r-project.org/web/packages/janitor/index.html)
 - [Shiny](https://cran.r-project.org/web/packages/shiny/index.html)
