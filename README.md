@@ -1,7 +1,7 @@
-# SPSCI2150: Applied Sports Science
+# SPSCI2150: Applied Sports Science 📊
 This is the online repository for `SPSCI2150: Applied Sports Science` (formerly `HRS2665: Applied Sports Science`), a graduate-level course in the Sports Science M.S. program at the University of Pittsburgh.
 
-### General information
+### General information 📋
 
 The repository is structured based on weekly lectures, with R scripts, markdown and/or HTML files, de-identified data and, in some instances, PDFs of each lecture contained in a separate folder. Topics covered include:
 
@@ -12,7 +12,7 @@ The repository is structured based on weekly lectures, with R scripts, markdown 
 - Visuomotor processing
 - Match analysis (event-level tracking)
 
-Going through each lecture, you will become proficient in the following:
+Going through each lecture, you will become proficient in the following: 💡
 
 - Introduction to R
 - Data cleanind and processing
@@ -22,7 +22,7 @@ Going through each lecture, you will become proficient in the following:
 - APIs (HawkinR, CatapultR, Wyscout)
 - Shiny
 
-All scripts were written in `R Markdown` and require **at least** the following dependancies in order to run on your device:
+All scripts were written in `R Markdown` and require **at least** the following dependancies in order to run on your device: 📁
 
 - [tidyverse](https://cran.r-project.org/web/packages/tidyverse/index.html) suite
 - [ggplot2](https://cran.r-project.org/web/packages/ggplot2/index.html), [dplyr](https://cran.r-project.org/web/packages/dplyr/index.html), [tidyr](https://cran.r-project.org/web/packages/tidyr/index.html), [readr](https://cran.r-project.org/web/packages/readr/index.html), [stringr](https://cran.r-project.org/web/packages/stringr/index.html), [forcats](https://cran.r-project.org/web/packages/forcats/index.html), [lubridate](https://cran.r-project.org/web/packages/lubridate/vignettes/lubridate.html)
@@ -37,7 +37,7 @@ All scripts were written in `R Markdown` and require **at least** the following 
 - [shorts](https://cran.r-project.org/web/packages/shorts/index.html)
 
 
-### Additional resources
+### Additional resources 📑
 
 - [Advanced R](https://adv-r.hadley.nz/) - Hadley Wickham
 - [R for Data Science](https://r4ds.had.co.nz/) - Hadley Wickham and Garrett Grolemund
@@ -46,6 +46,6 @@ All scripts were written in `R Markdown` and require **at least** the following 
 - [Tidy Text Mining](https://www.tidytextmining.com/) - Julia Silge and David Robinson
 
 
-### Contact
+### Contact 📧
 
 For questions, please contact Dr. Felix Proessl at fproessl@athletics.pitt.edu.
