@@ -1,0 +1,140 @@
+---
+title: "Intro to R"
+author: "SPSCI2150: Applied Sports Science"
+date: 'Week of 2022-10-31'
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE) # hashtag
+```
+
+## Introduction
+
+This is an R Markdown document for the Intro to R lecture of `SPSCI2150: Applied Sports Science` at the University of Pittsburgh. 
+
+In this tutorial, you will learn the basic variable types in R and how to import and examine the dimensions and structure of dataframes.
+
+Doing so, we will touch on some of the basics of the `tidyverse`: a series of **R packages** predominantly developed by Hadley Wickham and colleagues that is designed to simplify this process. You can learn more about the tidyverse here: https://www.tidyverse.org/packages/
+
+### Additional resources:
+**R for Data science:** https://r4ds.had.co.nz/
+**Advanced R:** https://adv-r.hadley.nz/
+
+
+### Import relevant packages
+
+Before we import our dataset, we first need to import the libraries that provide the functions to clean and process our data. In this lecture, we will utilize the `readr`, `dplyr`, `plyr`, `tidyr`, `lubridate`, `forcats`, `stringr` and `ggplot2`.
+
+```{r import packages, echo = TRUE, results='hide', message = FALSE, warning = FALSE}
+library(tidyverse)
+```
+
+
+**IF YOU CANNOT IMPORT THESE LIBRARIES YOU WILL NEED TO FIRST INSTALL THEM**
+You can install packages by typing `install.packages("tidyr")` into the console on the bottom. Replace the name of the library in the call to install each package individually, or just run `install.packages("tidyverse")` to install the whole package suite.
+
+### Data types
+
+As a brief reminder, there are various data types in R. **Numeric** (i.e. numbers), **Characters** (i.e. strings), **Dates** and **Boolean** (i.e. TRUE/FALSE). We can combine these in vectors using the `c()` function. It is typically recommended to maintain one data type in the entire vector and to avoid combinations of numerics, characters, boolean and/or dates in the same vector.
+
+```{r data types, echo = TRUE}
+x <- 1
+y <- 4
+
+x
+y
+
+x + y
+
+x_string <- "test"
+x_string
+
+x_string_num <- "1"
+x_string_num
+
+str(x_string_num)
+str(x)
+
+
+first_vector <- c(1, 2, 3, y, 5, 6, 7, y*2)
+first_vector
+
+second_vector <- c(8, 7, 6, 5, 4, 3, 2, 1)
+
+second_vector + first_vector
+
+bad_vector <- c(1, "1", 3, "test")
+bad_vector
+
+df_halloween <- data.frame(Day = c("Wednesday", "Thursday", "Friday", "Saturday"),
+                           Excitement = c(100, 100, 100, 0),
+                           Regret = c(0, 0, 0, 90))
+df_halloween
+```
+
+
+### Import data
+
+Now that we have the necessary functions to perform our operations, let's start by importing our dataset into R. You can think of this step as the equivalent to "double-clicking" your file and opening it in let's say Microsoft Excel. We will use the `read_csv()` function provided by the `readr` package. We will store the data under the variable name *df* which is a common abbreviation for *dataframe*.
+
+```{r import data, echo = TRUE}
+df <- read_csv('wellness_data.csv')
+```
+
+After running this line of code, you should have see a new variable **df** in your environment, consisting of 7469 observations and 14 variables. 
+
+### Dataframe structure
+
+To confirm the structure and dimensions of a dataframe, we can use simple *base R* syntax (`str()` and `dim()`).
+
+```{r data structure, echo = TRUE}
+str(df)
+```
+
+### Dataframe dimensions
+```{r data dimensions, echo = TRUE}
+dims <- dim(df)
+
+dims[2]
+
+first_vector[7]
+
+```
+
+### Data exploration
+
+Now that you know you have the correct dataframe [7469, 14], let's explore what's stored "in" the dataframe, using the `head()` and `tail()` functions. Whereas `head()` will show us the top n- number of observations, `tail()` will show us the bottom n- number of observations in the dataframe.
+
+```{r data exploration}
+head(df, 5)
+tail(df, 5)
+```
+
+Based on this initial exploration, we seem to have the following variables:
+`date`: the date at which the athlete filled out the survey
+`segment`: the specific body part that is sore and/or painful
+`user_uid`: the user ID of the athlete (de-identified)
+`Body Map Soreness`: the magnitude of soreness experience by the athlete for each body part (0-10 scale)
+`Body Map Pain`: whether or not the athlete experiences pain in the specific body part (0 = No, 1 = Yes)
+`Meals`: the number of meals eaten in the previous day
+`Snacks`: the number of snacks eaten in the previous day
+`Fatigue`: self-reported levels of fatigue (0-10, 10 = high, 0 = none)
+`RPE_Physical`: physical ratings of perceived exertion (RPE) for the previous day's session (0-10)
+`RPE_Mental`: cognitive/mental RPE for the previous day's session (0-10)
+`Good_Stress`: the amount of energy devoted to challenges and opportunities
+`Bad_Stress`: the amount of energy devoted to problems and difficulties
+
+### Data summary
+
+Knowing **what** the dataframe entails is helpful, but a **statistical summary** of our variables would be nice too. You can get a quick snapshot of some summary stats by using the `summary()` function. The function will also tell you the **type** of variable for each outcome. Remember from last lecture, there are *characters (strings), numeric, factors, dates, and Boolean (TRUE/FALSE)*.
+
+```{r data summary, echo = FALSE}
+summary(df)
+```
+
+As you can see in the above, date, segment and user_uid are characters (strings), whereas the rest are numerics since we can calculate the minimum, 1st quartile (i.e. 25th percentile), median (50th percentile), mean, 3rd quartile (i.e. 75th percentile) and maximum. You can also see the number of "NA"s (i.e., "not available"), which is a logical constant and indicates a missing value. Apparently there are quite many of them (5465), so let's take another look.
+
+```{r NA / missing value, echo = FALSE}
+head(df, 10)
+```
