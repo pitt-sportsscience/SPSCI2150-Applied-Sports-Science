@@ -64,7 +64,112 @@ After the basic structure of the graph is specified, indicate what type of **geo
 ```{r, ggplot2 basics 2, message=FALSE, warning=FALSE}
 df %>%
   ggplot(aes(x = Agility, y = SprintSpeed)) +
-  geom_point(alpha = 0.1)
+  geom_point()
+```
+### Arguments inside geoms
+
+To make a figure look "pretty" (and tell a more conclusive story), we can utilize the `color`, `fill`, `alpha`, `linewidth` and `size` arguments to our advantage. In the example below, we for instance set `alpha` proportional to **SprintSpeed** and `color` proportional to **Agility**. 
+
+We can then utilize `scale_color_gradient()` for any continuous variable to specify the range of colors employed. 
+
+```{r, ggplot2 arguments, message=FALSE, warning=FALSE}
+df %>%
+  ggplot(aes(x = Agility, y = SprintSpeed)) +
+  geom_point(aes(color = Agility,
+                 alpha = SprintSpeed)) +
+  scale_color_gradient(low = "gold",
+                        high = 'darkred')
+```
+### Specified themes
+
+Currently, there is a grey background and no axis lines. Depending on your intentions, you may want to quickly adjust that. We can replicate the same graph with different themes using different *themes*: for instance `theme_bw()`, `theme_minimal()`, `theme_light()`, `theme_dark()`, `theme_grey()`, `theme_linedraw()`.
+
+```{r, ggplot2 themes, message=FALSE, warning=FALSE}
+#theme bw
+df %>%
+  ggplot(aes(x = Agility, y = SprintSpeed)) +
+  geom_point(aes(color = Agility,
+                 alpha = SprintSpeed)) +
+  scale_color_gradient(low = "gold",
+                        high = 'darkred') +
+  theme_bw()
+
+#theme minimal
+df %>%
+  ggplot(aes(x = Agility, y = SprintSpeed)) +
+  geom_point(aes(color = Agility,
+                 alpha = SprintSpeed)) +
+  scale_color_gradient(low = "gold",
+                        high = 'darkred') +
+  theme_minimal()
+
+
+#theme light
+df %>%
+  ggplot(aes(x = Agility, y = SprintSpeed)) +
+  geom_point(aes(color = Agility,
+                 alpha = SprintSpeed)) +
+  scale_color_gradient(low = "gold",
+                        high = 'darkred') +
+  theme_light()
+
+#theme dark
+df %>%
+  ggplot(aes(x = Agility, y = SprintSpeed)) +
+  geom_point(aes(color = Agility,
+                 alpha = SprintSpeed)) +
+  scale_color_gradient(low = "gold",
+                        high = 'darkred') +
+  theme_dark()
+
+#theme grey
+df %>%
+  ggplot(aes(x = Agility, y = SprintSpeed)) +
+  geom_point(aes(color = Agility,
+                 alpha = SprintSpeed)) +
+  scale_color_gradient(low = "gold",
+                        high = 'darkred') +
+  theme_grey()
+
+#theme linedraw
+df %>%
+  ggplot(aes(x = Agility, y = SprintSpeed)) +
+  geom_point(aes(color = Agility,
+                 alpha = SprintSpeed)) +
+  scale_color_gradient(low = "gold",
+                        high = 'darkred') +
+  theme_linedraw()
+```
+
+### Customize themes
+
+If there are still things in the themes that you would like to see differently, you can also *customize* themes using the `theme()` function and specifying the various arguments within. Although not exhasutive, below is a list of things you can manually change in the `theme()` function:
+
+\n
+- `axis.line` to specify the color, width and presence/absence of grid lines. Adjust to `axis.line.x` for specifically the x-axis (and similar for y-axis)
+- `axis.text` to specify the size, color, angle and positioning of x- and y-axis labels
+- `axis.ticks` to specify the orientation and size of the x- and y-axis ticks (i.e. inward / outward, presence/absence)
+- `axis.title` to specify the size, font, boldness and orientation of the title
+- `legend.position` to specify the positioning of the legend when arguments are set proportional to a variable
+- `panel.background` to specify the color of the backdrop (can also be transparent)
+
+Using these examples, we can for instance customize the previous figure to our own liking.
+
+```{r customize themes, message = FALSE, warning = FALSE}
+df %>%
+  ggplot(aes(x = Agility, y = SprintSpeed)) +
+  geom_point(aes(color = Agility,
+                 alpha = SprintSpeed)) +
+  scale_color_gradient(low = "gold",
+                        high = 'darkred') +
+  theme(axis.title.x = element_text(size = 14, #increase font size
+                                  face = "bold"),#make font bold
+        axis.title.y = element_text(size = 10,
+                                    face = "bold"),
+        axis.text = element_text(size = 12),
+        legend.position = "top",
+        axis.line = element_line(color = "grey71"),
+        panel.background = element_blank())
 ```
 
 ### Bar chart
@@ -375,37 +480,131 @@ df_heatmap_long %>%
 
 ```
 
+
+### Geospatial data
+
+```{r wyscout, message = FALSE, warning = FALSE}
+library(jsonlite)
+
+# import the event-level data for the NCAA men's soccer tournament final 2021
+df_game <- fromJSON('Clemson_NCAA_tournament_final2021.json')[[1]] %>% unnest(type, .drop = FALSE)
+
+# visualize Clemson's shots
+df_game %>% 
+  filter(shot$isGoal != "NA") %>% 
+  ggplot() +
+  ggsoccer::annotate_pitch() +
+  geom_point(aes(x = abs(location$x - 100), 
+                 y = location$y,
+                 size = shot$xg,
+                 color = shot$isGoal,
+                 alpha = shot$isGoal)) +
+  labs(color = "Goal",
+       alpha = "Goal",
+       size = "xG") +
+  scale_alpha_manual(values = c(0.3, 0.75)) +
+  scale_color_manual(values = c("red", "darkgreen")) +
+  ggsoccer::theme_pitch() +
+  facet_wrap(~team$name) +
+  theme(legend.position = "right",
+        axis.title = element_blank(),
+        plot.title = element_text(size = 20, face = "bold"),
+        plot.subtitle = element_text(size = 16))
+
+# goal kicks
+df_game %>% 
+  filter(grepl("goal_kick", primary),
+         pass$accurate != "NA") %>% 
+  mutate(Short = case_when(pass$length < 30 ~ "Short",
+                           TRUE ~ "Long")) %>% 
+  ggplot(aes(x = abs(location$x - 100), y = location$y)) +
+  annotate_pitch() +
+  geom_segment(aes(xend = abs(pass$endLocation$x - 100),
+                   yend = pass$endLocation$y,
+                   color = pass$accurate),
+               alpha = 0.5,
+               arrow = arrow(length = unit(0.05, "cm"))) +
+  labs(color = "Accurate") +
+  scale_color_manual(values = c("red", "darkgreen")) +
+  ggsoccer::theme_pitch() +
+  facet_wrap(~team$name) +
+  theme(axis.title = element_blank(),
+        plot.title = element_text(size = 24, face = "bold"),
+        plot.subtitle = element_text(size = 16))
+
+```
+
+
+
+```{r geospatial density plots, message = FALSE, warning = FALSE}
+
+# visualize Clemson's shots
+df_game %>% 
+  filter(shot$isGoal != "NA") %>% 
+  ggplot() +
+  ggsoccer::annotate_pitch() +
+  geom_density_2d_filled(aes(x = abs(location$x - 100), 
+                 y = location$y),
+                 alpha = 0.75) +
+  labs(color = "Goal",
+       alpha = "Goal",
+       size = "xG") +
+  scale_alpha_manual(values = c(0.3, 0.75)) +
+  scale_color_manual(values = c("red", "darkgreen")) +
+  ggsoccer::theme_pitch() +
+  facet_wrap(~team$name) +
+  theme(legend.position = "right",
+        axis.title = element_blank(),
+        plot.title = element_text(size = 20, face = "bold"),
+        plot.subtitle = element_text(size = 16))
+
+```
+
 ### Special considerations: dates / calendars
 
 Sometimes when you want to analyze the **macrocycle** of your team, it's helpful to look at the whole season. Although line or summary charts are clean and easy, what's most intuitive to coaches is possibly a simple `calendar` format. In the below, we show how to format dates and use `facet_grid()` to generate graphs that resemble a calendar year. This example was taken from selva86 on GitHub: https://github.com/selva86
 
 ```{r, calendar_dates, message=FALSE, warning=FALSE}
-library(plyr)
-library(scales)
-library(zoo)
 
 
-df_data <- read.csv("https://raw.githubusercontent.com/selva86/datasets/master/yahoo.csv")
-df_data$date <- as.Date(df_data$date)  # format date
-df_data <- df_data[df_data$year >= 2012, ]  # filter reqd years
+gps_weekly_summary %>%
+  ggplot(aes(x = Weekday_label, 
+             y = Week_temp, 
+             fill = Distance/1000)) + #to move to km
+  geom_tile(color = "grey31",
+            size = 0.5) +
+  scale_fill_gradient2(low = "green",
+                       mid = "yellow",
+                       high = "red",
+                       breaks = c(0, 4, 8, 12),
+                       midpoint = 5,
+                       limits = c(0, 13),
+                       na.value = 0) +
+  labs(x = "Weekday",
+       y = "Week",
+       title = "Distance (km)",
+       fill = "Distance (km)") +
+  geom_text(aes(label = round(Distance/1000, digits = 1))) +
+  theme_minimal() +
+  scale_y_reverse() +
+  theme(axis.text.x = element_text(size = 12,
+                                   angle = 45,
+                                   hjust = 1,
+                                   vjust = 1),
+        plot.subtitle = element_text(size = 12),
+        panel.grid.minor = element_line(color = "transparent"),
+        panel.grid.major = element_line(color = "transparent"),
+        panel.background = element_blank(),
+        axis.title.x = element_blank(),
+        axis.text.y = element_blank(),
+        strip.text.y = element_blank(),
+        plot.title = element_text(size = 18),
+        axis.title.y = element_text(face = "bold", size = 12),
+        axis.line.x = element_line(),
+        legend.position = "top",
+        axis.line.y = element_blank())
 
 
-df_data$yearmonth <- as.yearmon(df_data$date)
-df_data$yearmonthf <- factor(df_data$yearmonth)
-df_data <- ddply(df_data,.(yearmonthf), transform, monthweek=1+week-min(week))  # compute week number of month
-df_data <- df_data[, c("year", "yearmonthf", "monthf", "week", "monthweek", "weekdayf", "VIX.Close")]
-head(df_data)
-
-df_data %>%
-  ggplot(aes(monthweek, weekdayf, fill = VIX.Close)) + 
-  geom_tile(colour = "white") + 
-  facet_grid(year~monthf) + 
-  scale_fill_gradient(low="red", high="green") +
-  labs(x="Week of Month",
-       y="",
-       title = "Time-Series Calendar Heatmap", 
-       subtitle="Yahoo Closing Price", 
-       fill="Close")
 ```
 
 ### Aesthetics and storytelling
